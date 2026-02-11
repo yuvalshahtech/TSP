@@ -9,7 +9,7 @@
 <body>
     <div class="container">
         <header class="header">
-            <h1>🎮 TSP Arena</h1>
+            <h1><i data-lucide="network"></i> TSP Arena</h1>
             <p class="subtitle">Interactive Algorithm Visualization Lab</p>
         </header>
 
@@ -29,28 +29,50 @@
                     <div class="control-group">
                         <label for="speedControl">Animation Speed:</label>
                         <select id="speedControl" class="speed-control">
-                            <option value="slow">🐢 Slow (Teaching Mode)</option>
-                            <option value="medium" selected>⚡ Medium (Balanced)</option>
-                            <option value="fast">🚀 Fast (Demo Mode)</option>
+                            <option value="slow">Slow (Teaching Mode)</option>
+                            <option value="medium" selected>Medium (Balanced)</option>
+                            <option value="fast">Fast (Demo Mode)</option>
                         </select>
                     </div>
 
                     <div class="button-group">
-                        <button id="generateCities" class="btn btn-primary">Generate Cities</button>
-                        <button id="runGreedy" class="btn btn-greedy">Run Greedy</button>
-                        <button id="runBruteForce" class="btn btn-optimal">Find Optimal</button>
-                        <button id="runAllAlgorithms" class="btn btn-all">Run All</button>
+                        <button id="generateCities" class="btn btn-primary">
+                            <i data-lucide="map-pin"></i>
+                            <span>Generate Cities</span>
+                        </button>
+                        <button id="runGreedy" class="btn btn-greedy">
+                            <i data-lucide="trending-up"></i>
+                            <span>Run Greedy</span>
+                        </button>
+                        <button id="runBruteForce" class="btn btn-optimal">
+                            <i data-lucide="zap"></i>
+                            <span>Find Optimal</span>
+                        </button>
+                        <button id="runAllAlgorithms" class="btn btn-all">
+                            <i data-lucide="play"></i>
+                            <span>Run All</span>
+                        </button>
                     </div>
                 </div>
 
                 <div id="stepControlPanel" class="step-control-panel" style="display: none;">
                     <div class="step-controls">
                         <div class="step-button-row">
-                            <button id="stepPlay" class="btn-step" title="Play">▶</button>
-                            <button id="stepPause" class="btn-step" title="Pause" disabled>⏸</button>
-                            <button id="stepNext" class="btn-step" title="Next Step">⏭</button>
-                            <button id="stepReplay" class="btn-step" title="Replay">🔁</button>
-                            <button id="stepReset" class="btn-step" title="Reset">🔄</button>
+                            <button id="stepPlay" class="btn-step" title="Play">
+                                <i data-lucide="play"></i>
+                            </button>
+                            <button id="stepPause" class="btn-step" title="Pause" disabled>
+                                <i data-lucide="pause"></i>
+                            </button>
+                            <button id="stepNext" class="btn-step" title="Next Step">
+                                <i data-lucide="skip-forward"></i>
+                            </button>
+                            <button id="stepReplay" class="btn-step" title="Replay">
+                                <i data-lucide="repeat"></i>
+                            </button>
+                            <button id="stepReset" class="btn-step" title="Reset">
+                                <i data-lucide="rotate-ccw"></i>
+                            </button>
                         </div>
                         <div class="step-info">
                             <div id="stepIndex" class="step-index">Step 0 / 0</div>
@@ -65,7 +87,7 @@
                 <div id="userDistanceDisplay" class="user-distance" style="display: none;"></div>
 
                 <div class="analysis-panel">
-                    <h3>Algorithm Comparison</h3>
+                    <h3><i data-lucide="bar-chart-3"></i> Algorithm Comparison</h3>
                     <table id="comparisonTable" class="comparison-table">
                         <thead>
                             <tr>
@@ -82,28 +104,28 @@
                                 <td class="distance-cell">-</td>
                                 <td class="time-cell">-</td>
                                 <td class="complexity-cell">-</td>
-                                <td class="optimal-cell">❌</td>
+                                <td class="optimal-cell"><i data-lucide="x" class="icon-no"></i></td>
                             </tr>
                             <tr id="row-greedy">
                                 <td class="method-name">Greedy</td>
                                 <td class="distance-cell">-</td>
                                 <td class="time-cell">-</td>
                                 <td class="complexity-cell">O(n²)</td>
-                                <td class="optimal-cell">❌</td>
+                                <td class="optimal-cell"><i data-lucide="x" class="icon-no"></i></td>
                             </tr>
                             <tr id="row-optimal">
                                 <td class="method-name">Optimal</td>
                                 <td class="distance-cell">-</td>
                                 <td class="time-cell">-</td>
                                 <td class="complexity-cell">O(n!)</td>
-                                <td class="optimal-cell">✅</td>
+                                <td class="optimal-cell"><i data-lucide="check" class="icon-yes"></i></td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
 
                 <div class="route-info-panel">
-                    <h4>Route Order</h4>
+                    <h4><i data-lucide="list-ordered"></i> Route Order</h4>
                     <p id="routeSequence">None</p>
                 </div>
 
@@ -115,5 +137,12 @@
     </div>
 
     <script type="module" src="./script.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        // Initialize Lucide icons after DOM loads
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    </script>
 </body>
 </html>

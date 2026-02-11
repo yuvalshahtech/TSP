@@ -37,6 +37,16 @@ body {
     margin-bottom: 5px;
     text-shadow: 0 0 20px rgba(0, 255, 204, 0.5);
     letter-spacing: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+.header h1 svg {
+    width: 36px;
+    height: 36px;
+    stroke-width: 2;
 }
 
 .subtitle {
@@ -261,6 +271,16 @@ canvas {
     letter-spacing: 1px;
     transition: all 0.3s ease;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn svg {
+    width: 18px;
+    height: 18px;
+    stroke-width: 2.5;
 }
 
 .btn:disabled {
@@ -344,6 +364,15 @@ canvas {
     cursor: pointer;
     transition: all 0.2s ease;
     font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-step svg {
+    width: 20px;
+    height: 20px;
+    stroke-width: 2.5;
 }
 
 .btn-step:hover:not(:disabled) {
@@ -430,6 +459,16 @@ canvas {
     letter-spacing: 1.5px;
     text-shadow: 0 0 10px rgba(0, 200, 255, 0.5);
     text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.analysis-panel h3 svg {
+    width: 18px;
+    height: 18px;
+    stroke-width: 2.5;
 }
 
 .comparison-table {
@@ -499,6 +538,23 @@ canvas {
     font-size: 1.1em;
 }
 
+.comparison-table .optimal-cell svg {
+    width: 18px;
+    height: 18px;
+    vertical-align: middle;
+    stroke-width: 2.5;
+}
+
+.comparison-table .icon-yes {
+    color: #00ff88;
+    stroke: #00ff88;
+}
+
+.comparison-table .icon-no {
+    color: #ff4444;
+    stroke: #ff4444;
+}
+
 .comparison-table .time-cell {
     font-family: 'Courier New', monospace;
     color: #aaaaaa;
@@ -561,6 +617,15 @@ canvas {
     letter-spacing: 1px;
     font-weight: 600;
     opacity: 0.9;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.route-info-panel h4 svg {
+    width: 16px;
+    height: 16px;
+    stroke-width: 2.5;
 }
 
 #routeSequence {

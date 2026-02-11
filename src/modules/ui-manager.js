@@ -58,7 +58,10 @@ class UIManager {
       }
       if (timeCell) timeCell.textContent = '-';
       if (optimalCell) {
-        optimalCell.textContent = (userDistance === bestDistance && bestDistance !== null && optimalDistance !== null) ? '✅' : '❌';
+        optimalCell.innerHTML = (userDistance === bestDistance && bestDistance !== null && optimalDistance !== null) 
+          ? '<i data-lucide="check" class="icon-yes"></i>' 
+          : '<i data-lucide="x" class="icon-no"></i>';
+        if (typeof lucide !== 'undefined') lucide.createIcons();
       }
     }
 
@@ -75,7 +78,10 @@ class UIManager {
       }
       if (timeCell) timeCell.textContent = greedyTime !== null ? `${greedyTime.toFixed(2)} ms` : '-';
       if (optimalCell) {
-        optimalCell.textContent = (greedyDistance === bestDistance && bestDistance !== null && optimalDistance !== null) ? '✅' : '❌';
+        optimalCell.innerHTML = (greedyDistance === bestDistance && bestDistance !== null && optimalDistance !== null) 
+          ? '<i data-lucide="check" class="icon-yes"></i>' 
+          : '<i data-lucide="x" class="icon-no"></i>';
+        if (typeof lucide !== 'undefined') lucide.createIcons();
       }
     }
 
@@ -92,7 +98,8 @@ class UIManager {
       }
       if (timeCell) timeCell.textContent = optimalTime !== null ? `${optimalTime.toFixed(2)} ms` : '-';
       if (optimalCell) {
-        optimalCell.textContent = optimalDistance !== null ? '✅' : '-';
+        optimalCell.innerHTML = optimalDistance !== null ? '<i data-lucide="check" class="icon-yes"></i>' : '-';
+        if (typeof lucide !== 'undefined') lucide.createIcons();
       }
       
       // Add gold highlighting to optimal row

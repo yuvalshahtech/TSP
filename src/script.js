@@ -254,7 +254,13 @@ document.addEventListener("DOMContentLoaded", () => {
       const hasData = result !== null;
       const distance = hasData ? result.distance.toFixed(2) : '-';
       const time = hasData && result.time !== null ? `${result.time.toFixed(2)} ms` : '-';
-      const optimal = method.key === 'optimal' ? (hasData ? '✅' : '-') : '❌';
+      let optimal = '-';
+      
+      if (method.key === 'optimal') {
+        optimal = hasData ? '<i data-lucide="check" class="icon-yes"></i>' : '-';
+      } else {
+        optimal = '<i data-lucide="x" class="icon-no"></i>';
+      }
 
       row.innerHTML = `
         <td class="method-name">${method.label}</td>
@@ -278,6 +284,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
       tbody.appendChild(row);
     });
+
+    // Reinitialize Lucide icons
+    if (typeof lucide !== 'undefined') {
+      lucide.createIcons();
+    }
 
     // Apply best distance highlighting
     highlightBestDistance();
