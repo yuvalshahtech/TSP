@@ -1,0 +1,22 @@
+{
+  "name": "tsp-arena",
+  "version": "1.0.0",
+  "description": "A web application for solving the Traveling Salesman Problem using different algorithms.",
+  "main": "src/script.js",
+  "scripts": {
+    "start": "live-server src",
+    "build": "echo 'No build step required.'"
+  },
+  "keywords": [
+    "TSP",
+    "Traveling Salesman Problem",
+    "algorithm",
+    "JavaScript"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {
+    "live-server": "^1.2.1"
+  }
+}

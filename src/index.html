@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TSP Arena – You vs Algorithm</title>
+    <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>🎮 TSP Arena</h1>
+            <p class="subtitle">Interactive Algorithm Visualization Lab</p>
+        </header>
+
+        <div class="main-content">
+            <div class="canvas-section">
+                <h3 id="routeLabel" class="route-label">Viewing: Algorithm Visualization</h3>
+                <canvas id="tspCanvas" width="900" height="650"></canvas>
+            </div>
+
+            <div class="control-section">
+                <div class="controls-panel">
+                    <div class="control-group">
+                        <label for="cityCount">Cities: <span id="cityCountValue">6</span></label>
+                        <input id="cityCount" type="range" min="3" max="30" value="6" class="slider">
+                    </div>
+
+                    <div class="control-group">
+                        <label for="speedControl">Animation Speed:</label>
+                        <select id="speedControl" class="speed-control">
+                            <option value="slow">🐢 Slow (Teaching Mode)</option>
+                            <option value="medium" selected>⚡ Medium (Balanced)</option>
+                            <option value="fast">🚀 Fast (Demo Mode)</option>
+                        </select>
+                    </div>
+
+                    <div class="button-group">
+                        <button id="generateCities" class="btn btn-primary">Generate Cities</button>
+                        <button id="runGreedy" class="btn btn-greedy">Run Greedy</button>
+                        <button id="runBruteForce" class="btn btn-optimal">Find Optimal</button>
+                        <button id="runAllAlgorithms" class="btn btn-all">Run All</button>
+                    </div>
+                </div>
+
+                <div id="stepControlPanel" class="step-control-panel" style="display: none;">
+                    <div class="step-controls">
+                        <div class="step-button-row">
+                            <button id="stepPlay" class="btn-step" title="Play">▶</button>
+                            <button id="stepPause" class="btn-step" title="Pause" disabled>⏸</button>
+                            <button id="stepNext" class="btn-step" title="Next Step">⏭</button>
+                            <button id="stepReplay" class="btn-step" title="Replay">🔁</button>
+                            <button id="stepReset" class="btn-step" title="Reset">🔄</button>
+                        </div>
+                        <div class="step-info">
+                            <div id="stepIndex" class="step-index">Step 0 / 0</div>
+                            <div class="step-progress-bar">
+                                <div id="stepProgress" class="step-progress-fill"></div>
+                            </div>
+                        </div>
+                        <div id="stepExplanation" class="step-explanation"></div>
+                    </div>
+                </div>
+
+                <div id="userDistanceDisplay" class="user-distance" style="display: none;"></div>
+
+                <div class="analysis-panel">
+                    <h3>Algorithm Comparison</h3>
+                    <table id="comparisonTable" class="comparison-table">
+                        <thead>
+                            <tr>
+                                <th>Method</th>
+                                <th>Distance</th>
+                                <th>Time Taken</th>
+                                <th>Complexity</th>
+                                <th>Optimal?</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr id="row-user">
+                                <td class="method-name">User</td>
+                                <td class="distance-cell">-</td>
+                                <td class="time-cell">-</td>
+                                <td class="complexity-cell">-</td>
+                                <td class="optimal-cell">❌</td>
+                            </tr>
+                            <tr id="row-greedy">
+                                <td class="method-name">Greedy</td>
+                                <td class="distance-cell">-</td>
+                                <td class="time-cell">-</td>
+                                <td class="complexity-cell">O(n²)</td>
+                                <td class="optimal-cell">❌</td>
+                            </tr>
+                            <tr id="row-optimal">
+                                <td class="method-name">Optimal</td>
+                                <td class="distance-cell">-</td>
+                                <td class="time-cell">-</td>
+                                <td class="complexity-cell">O(n!)</td>
+                                <td class="optimal-cell">✅</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="route-info-panel">
+                    <h4>Route Order</h4>
+                    <p id="routeSequence">None</p>
+                </div>
+
+                <div id="educationalPanel" class="educational-panel" style="display: none;">
+                    <div id="educationalContent" class="educational-content"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="./script.js"></script>
+</body>
+</html>

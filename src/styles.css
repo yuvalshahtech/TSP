@@ -1,0 +1,707 @@
+/* ============================================================================
+   GLOBAL STYLES
+   ============================================================================ */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+}
+
+body {
+    background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+    color: #ffffff;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    overflow-x: hidden;
+}
+
+/* ============================================================================
+   HEADER
+   ============================================================================ */
+
+.header {
+    text-align: center;
+    padding: 30px 20px;
+    background: rgba(0, 255, 204, 0.05);
+    border-bottom: 2px solid rgba(0, 255, 204, 0.2);
+}
+
+.header h1 {
+    font-size: 2.5em;
+    font-weight: 700;
+    margin-bottom: 5px;
+    text-shadow: 0 0 20px rgba(0, 255, 204, 0.5);
+    letter-spacing: 2px;
+}
+
+.subtitle {
+    font-size: 0.95em;
+    color: #00c8ff;
+    font-weight: 300;
+    letter-spacing: 1px;
+}
+
+/* ============================================================================
+   LAYOUT
+   ============================================================================ */
+
+.container {
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.main-content {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 350px;
+    gap: 20px;
+    padding: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+/* ============================================================================
+   CANVAS SECTION
+   ============================================================================ */
+
+.canvas-section {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+}
+
+.route-label {
+    font-size: 1.1em;
+    color: #00ffcc;
+    font-weight: 600;
+    text-align: center;
+    padding: 10px 20px;
+    background: rgba(0, 20, 40, 0.7);
+    border: 1px solid rgba(0, 255, 204, 0.3);
+    border-radius: 8px;
+    backdrop-filter: blur(10px);
+    text-shadow: 0 0 10px rgba(0, 255, 204, 0.5);
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+}
+
+canvas {
+    background-color: #0a0e27;
+    border: 2px solid #00ffcc;
+    border-radius: 12px;
+    box-shadow: 0 0 40px rgba(0, 255, 204, 0.3),
+                inset 0 0 40px rgba(0, 255, 204, 0.05);
+    max-width: 100%;
+    height: auto;
+}
+
+/* ============================================================================
+   CONTROL SECTION
+   ============================================================================ */
+
+.control-section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    overflow-y: auto;
+}
+
+.control-section::-webkit-scrollbar {
+    width: 8px;
+}
+
+.control-section::-webkit-scrollbar-track {
+    background: rgba(0, 255, 204, 0.1);
+    border-radius: 10px;
+}
+
+.control-section::-webkit-scrollbar-thumb {
+    background: rgba(0, 255, 204, 0.3);
+    border-radius: 10px;
+}
+
+.control-section::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 255, 204, 0.5);
+}
+
+/* ============================================================================
+   PANELS - GLASSMORPHISM
+   ============================================================================ */
+
+.controls-panel,
+.user-distance,
+.educational-panel {
+    background: rgba(20, 30, 60, 0.7);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 255, 204, 0.2);
+    border-radius: 12px;
+    padding: 18px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+}
+
+.controls-panel:hover,
+.user-distance:hover,
+.educational-panel:hover {
+    border-color: rgba(0, 255, 204, 0.4);
+    box-shadow: 0 12px 48px rgba(0, 255, 204, 0.15);
+}
+
+/* ============================================================================
+   CONTROLS
+   ============================================================================ */
+
+.control-group {
+    margin-bottom: 16px;
+}
+
+.control-group label {
+    display: block;
+    font-size: 0.9em;
+    color: #00ffcc;
+    margin-bottom: 8px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.slider {
+    width: 100%;
+    height: 6px;
+    background: rgba(0, 255, 204, 0.2);
+    border-radius: 3px;
+    outline: none;
+    -webkit-appearance: none;
+}
+
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    background: linear-gradient(135deg, #00ffcc, #00ff88);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 15px rgba(0, 255, 204, 0.6);
+    transition: all 0.2s ease;
+}
+
+.slider::-webkit-slider-thumb:hover {
+    box-shadow: 0 0 25px rgba(0, 255, 204, 0.8);
+    transform: scale(1.2);
+}
+
+.slider::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    background: linear-gradient(135deg, #00ffcc, #00ff88);
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 0 15px rgba(0, 255, 204, 0.6);
+}
+
+.speed-control {
+    width: 100%;
+    padding: 10px 12px;
+    background: rgba(0, 255, 204, 0.1);
+    border: 1.5px solid rgba(0, 255, 204, 0.4);
+    border-radius: 6px;
+    color: #00ffcc;
+    font-weight: 600;
+    font-size: 0.9em;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.speed-control:hover {
+    border-color: rgba(0, 255, 204, 0.6);
+    box-shadow: 0 0 12px rgba(0, 255, 204, 0.3);
+}
+
+.speed-control:focus {
+    outline: none;
+    border-color: rgba(0, 255, 204, 0.8);
+    box-shadow: 0 0 20px rgba(0, 255, 204, 0.5);
+}
+
+.speed-control option {
+    background: #141e3c;
+    color: #00ffcc;
+}
+
+/* ============================================================================
+   BUTTONS
+   ============================================================================ */
+
+.button-group {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+}
+
+.btn {
+    padding: 12px 16px;
+    font-size: 0.9em;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.3s ease;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #00ffcc, #00ff88);
+    color: #000;
+}
+
+.btn-primary:hover:not(:disabled) {
+    box-shadow: 0 0 25px rgba(0, 255, 204, 0.6);
+    transform: translateY(-2px);
+}
+
+.btn-greedy {
+    background: linear-gradient(135deg, #00c8ff, #007aff);
+    color: #fff;
+}
+
+.btn-greedy:hover:not(:disabled) {
+    box-shadow: 0 0 25px rgba(0, 200, 255, 0.6);
+    transform: translateY(-2px);
+}
+
+.btn-optimal {
+    background: linear-gradient(135deg, #ffd700, #ffaa00);
+    color: #000;
+}
+
+.btn-optimal:hover:not(:disabled) {
+    box-shadow: 0 0 25px rgba(255, 215, 0, 0.6);
+    transform: translateY(-2px);
+}
+
+.btn-all {
+    background: linear-gradient(135deg, #ff00ff, #ff0080);
+    color: #fff;
+}
+
+.btn-all:hover:not(:disabled) {
+    box-shadow: 0 0 25px rgba(255, 0, 255, 0.6);
+    transform: translateY(-2px);
+}
+
+/* ============================================================================
+   STEP CONTROL PANEL
+   ============================================================================ */
+
+.step-control-panel {
+    background: rgba(20, 30, 60, 0.9);
+    backdrop-filter: blur(10px);
+    border: 1.5px solid rgba(0, 255, 136, 0.4);
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.step-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.step-button-row {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+}
+
+.btn-step {
+    flex: 1;
+    padding: 10px;
+    font-size: 1.1em;
+    background: rgba(0, 255, 136, 0.15);
+    border: 1.5px solid rgba(0, 255, 136, 0.4);
+    border-radius: 6px;
+    color: #00ff88;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: 600;
+}
+
+.btn-step:hover:not(:disabled) {
+    background: rgba(0, 255, 136, 0.25);
+    border-color: rgba(0, 255, 136, 0.8);
+    box-shadow: 0 0 15px rgba(0, 255, 136, 0.5);
+    transform: translateY(-2px);
+}
+
+.btn-step:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.step-info {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.step-index {
+    text-align: center;
+    font-size: 0.85em;
+    color: #00ffcc;
+    font-weight: 600;
+}
+
+.step-progress-bar {
+    height: 6px;
+    background: rgba(0, 255, 136, 0.1);
+    border-radius: 3px;
+    overflow: hidden;
+    border: 1px solid rgba(0, 255, 136, 0.3);
+}
+
+.step-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #00ff88, #00ffcc);
+    width: 0%;
+    transition: width 0.2s ease;
+}
+
+.step-explanation {
+    font-size: 0.85em;
+    color: #00c8ff;
+    line-height: 1.4;
+    min-height: 30px;
+    padding: 8px;
+    background: rgba(0, 200, 255, 0.05);
+    border-left: 2px solid rgba(0, 200, 255, 0.3);
+    padding-left: 10px;
+    border-radius: 4px;
+    max-height: 60px;
+    overflow-y: auto;
+}
+
+/* ============================================================================
+   ANALYSIS PANEL (COMPARISON TABLE)
+   ============================================================================ */
+
+.analysis-panel {
+    background: rgba(0, 20, 40, 0.6);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 200, 255, 0.3);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+    width: 100%;
+    overflow-x: auto;
+}
+
+.analysis-panel:hover {
+    border-color: rgba(0, 255, 204, 0.5);
+    box-shadow: 0 12px 40px rgba(0, 255, 204, 0.2);
+}
+
+.analysis-panel h3 {
+    font-size: 1em;
+    color: #00c8ff;
+    font-weight: 700;
+    margin-bottom: 16px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    text-shadow: 0 0 10px rgba(0, 200, 255, 0.5);
+    text-align: center;
+}
+
+.comparison-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85em;
+    min-width: 500px;
+}
+
+.comparison-table thead {
+    background: rgba(0, 200, 255, 0.15);
+    border-bottom: 2px solid rgba(0, 200, 255, 0.5);
+}
+
+.comparison-table th {
+    padding: 12px 8px;
+    text-align: center;
+    font-weight: 700;
+    color: #00ffcc;
+    text-transform: uppercase;
+    font-size: 0.75em;
+    letter-spacing: 0.5px;
+}
+
+.comparison-table tbody tr {
+    border-bottom: 1px solid rgba(0, 255, 204, 0.1);
+    transition: all 0.3s ease;
+}
+
+.comparison-table tbody tr:hover:not([style*=\"opacity: 0.6\"]) {
+    background: rgba(0, 150, 255, 0.15) !important;
+    transform: scale(1.02);
+    box-shadow: 0 2px 8px rgba(0, 150, 255, 0.3);
+}
+
+.comparison-table tbody tr.active-row {
+    background: rgba(0, 150, 255, 0.25) !important;
+    border-left: 4px solid #00c8ff;
+    font-weight: bold;
+    box-shadow: 0 0 15px rgba(0, 200, 255, 0.5);
+}
+
+.comparison-table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.comparison-table td {
+    padding: 14px 8px;
+    color: #ffffff;
+    text-align: center;
+}
+
+.comparison-table .method-name {
+    font-weight: 700;
+    color: #00c8ff;
+}
+
+.comparison-table .distance-cell {
+    font-family: 'Courier New', monospace;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.comparison-table .distance-cell.best-distance {
+    color: #00ff88;
+    text-shadow: 0 0 8px rgba(0, 255, 136, 0.6);
+    font-size: 1.1em;
+}
+
+.comparison-table .time-cell {
+    font-family: 'Courier New', monospace;
+    color: #aaaaaa;
+    font-size: 0.9em;
+}
+
+.comparison-table .complexity-cell {
+    font-family: 'Courier New', monospace;
+    color: #ff00ff;
+    font-weight: 600;
+}
+
+.comparison-table .optimal-cell {
+    text-align: center;
+    font-size: 1.2em;
+}
+
+.comparison-table #row-optimal {
+    transition: all 0.3s ease;
+}
+
+.comparison-table #row-optimal.optimal-row {
+    background: rgba(255, 215, 0, 0.08);
+    border: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+.comparison-table #row-optimal.optimal-row:hover {
+    background: rgba(255, 215, 0, 0.12);
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+}
+
+.comparison-table #row-optimal.optimal-row .method-name {
+    color: #ffd700;
+    text-shadow: 0 0 8px rgba(255, 215, 0, 0.5);
+}
+
+/* ============================================================================
+   ROUTE INFO PANEL
+   ============================================================================ */
+
+.route-info-panel {
+    margin-top: 16px;
+    padding: 14px 16px;
+    background: rgba(0, 150, 255, 0.08);
+    border: 1px solid rgba(0, 150, 255, 0.2);
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.route-info-panel:hover {
+    background: rgba(0, 150, 255, 0.12);
+    border-color: rgba(0, 150, 255, 0.3);
+}
+
+.route-info-panel h4 {
+    margin: 0 0 8px 0;
+    font-size: 0.85em;
+    color: #00c8ff;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 600;
+    opacity: 0.9;
+}
+
+#routeSequence {
+    margin: 0;
+    font-size: 0.9em;
+    font-weight: 500;
+    color: #ffffff;
+    font-family: 'Courier New', monospace;
+    line-height: 1.6;
+    word-break: break-word;
+    max-width: 100%;
+    overflow-wrap: break-word;
+}
+
+/* ============================================================================
+   USER DISTANCE
+   ============================================================================ */
+
+.user-distance {
+    text-align: center;
+    border: 2px solid #00ff88;
+    background: rgba(0, 255, 136, 0.1);
+}
+
+.distance-display {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.distance-value {
+    font-size: 1.6em;
+    font-weight: 700;
+    color: #00ff88;
+    text-shadow: 0 0 15px rgba(0, 255, 136, 0.6);
+    font-family: 'Courier New', monospace;
+}
+
+/* ============================================================================
+   EDUCATIONAL PANEL
+   ============================================================================ */
+
+.educational-panel {
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    background: rgba(255, 215, 0, 0.05);
+}
+
+.educational-content {
+    font-size: 0.85em;
+    line-height: 1.6;
+}
+
+.educational-content h3 {
+    color: #ffd700;
+    margin-bottom: 10px;
+    font-size: 1em;
+}
+
+.educational-content p {
+    margin-bottom: 8px;
+    color: #e0e0e0;
+}
+
+.educational-content strong {
+    color: #ffaa00;
+}
+
+/* ============================================================================
+   RESPONSIVE DESIGN
+   ============================================================================ */
+
+@media (max-width: 1024px) {
+    .main-content {
+        grid-template-columns: 1fr;
+    }
+
+    .control-section {
+        max-height: 400px;
+    }
+
+    .header h1 {
+        font-size: 2em;
+    }
+}
+
+@media (max-width: 768px) {
+    .header h1 {
+        font-size: 1.6em;
+    }
+
+    .subtitle {
+        font-size: 0.85em;
+    }
+
+    .main-content {
+        padding: 15px;
+        gap: 15px;
+    }
+
+    .button-group {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    canvas {
+        max-width: 100%;
+        height: auto;
+    }
+
+    .comparison-table {
+        font-size: 0.75em;
+    }
+
+    .comparison-table th,
+    .comparison-table td {
+        padding: 10px 6px;
+    }
+
+    .analysis-panel h3 {
+        font-size: 0.9em;
+        margin-bottom: 12px;
+    }
+
+    .route-label {
+        font-size: 0.9em;
+        padding: 8px 15px;
+    }
+
+    .canvas-section {
+        gap: 10px;
+    }
+
+    .route-info-panel {
+        margin-top: 12px;
+        padding: 12px;
+    }
+
+    .route-info-panel h4 {
+        font-size: 0.8em;
+    }
+
+    #routeSequence {
+        font-size: 0.8em;
+    }
+}
