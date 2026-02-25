@@ -10,9 +10,13 @@ Interactive algorithm visualization system for comparing user-defined routes aga
 
 Representative interface states across desktop and mobile environments.
 
-![Desktop View](./screenshots/desktop.png)
-![Mobile View](./screenshots/mobile.jpeg)
-![Brute Force Progress](./screenshots/bruteforce.png)
+<p align="center">
+  <img src="./screenshots/desktop.png" width="500"/>
+  <img src="./screenshots/mobile.jpeg" width="250"/>
+</p>
+<p align="center">
+  <img src="./screenshots/bruteforce.png" width="600"/>
+</p>
 
 ---
 
