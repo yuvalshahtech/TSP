@@ -4,6 +4,8 @@
  * Returns step array suitable for StepController
  */
 
+import { calculateTotalDistance } from '../algorithms/tsp-solver.js';
+
 /**
  * Generate steps for Greedy TSP algorithm
  * @param {Array} cities - Array of city objects with id, x, y
@@ -140,13 +142,8 @@ function generateGreedySteps(cities) {
   // Close the route
   visitedOrder.push(0);
 
-  // Calculate total distance
-  let totalDistance = 0;
-  for (let i = 0; i < visitedOrder.length - 1; i++) {
-    const dx = cities[visitedOrder[i + 1]].x - cities[visitedOrder[i]].x;
-    const dy = cities[visitedOrder[i + 1]].y - cities[visitedOrder[i]].y;
-    totalDistance += Math.sqrt(dx * dx + dy * dy);
-  }
+  // Calculate total distance using centralized function
+  const totalDistance = calculateTotalDistance(visitedOrder, cities);
 
   steps.push({
     type: "metadata_update",

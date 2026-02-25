@@ -64,9 +64,9 @@ class StepController {
       this.currentStepIndex++;
       this._notifyStepChanged();
       
-      // Check if we reached final_result step - stop autoplay
+      // Check if we reached final step - stop autoplay
       const currentStep = this.getCurrentStep();
-      if (currentStep && currentStep.type === "final_result" && this.isPlaying) {
+      if (currentStep && ["final_result", "final"].includes(currentStep.type) && this.isPlaying) {
         this.pause();
       }
       
@@ -189,7 +189,7 @@ class StepController {
    */
   getUIState() {
     const currentStep = this.getCurrentStep();
-    const isFinalResult = currentStep && currentStep.type === "final_result";
+    const isFinalResult = currentStep && ["final_result", "final"].includes(currentStep.type);
     
     return {
       canPlay: !this.isPlaying && this.steps.length > 0 && !isFinalResult,

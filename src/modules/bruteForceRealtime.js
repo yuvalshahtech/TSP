@@ -4,6 +4,8 @@
  * Shows algorithm "thinking" in progress without precomputation
  */
 
+import { calculateTotalDistance, EPSILON } from '../algorithms/tsp-solver.js';
+
 /**
  * Generator function for permutations
  */
@@ -19,27 +21,6 @@ function* generatePermutations(array) {
       }
     }
   }
-}
-
-/**
- * Calculate total distance for a path
- */
-function calculatePathDistance(path, cities) {
-  let distance = 0;
-  for (let i = 0; i < path.length - 1; i++) {
-    const from = cities[path[i]];
-    const to = cities[path[i + 1]];
-    const dx = to.x - from.x;
-    const dy = to.y - from.y;
-    distance += Math.sqrt(dx * dx + dy * dy);
-  }
-  // Close the loop
-  const from = cities[path[path.length - 1]];
-  const to = cities[path[0]];
-  const dx = to.x - from.x;
-  const dy = to.y - from.y;
-  distance += Math.sqrt(dx * dx + dy * dy);
-  return distance;
 }
 
 /**
@@ -251,12 +232,12 @@ async function runBruteForceLive(cities, ctx, canvas, config, state, speed = 50,
 
     permutationsChecked++;
 
-    // Build full path with closing the loop
+    // Calculate distance (function handles closing)
+    const distance = calculateTotalDistance(perm, cities);
     const fullPath = [...perm, perm[0]];
-    const distance = calculatePathDistance(fullPath, cities);
 
-    // Update best if better
-    if (distance < bestDistance) {
+    // Update best if better (with epsilon tolerance)
+    if (distance < bestDistance - EPSILON) {
       bestDistance = distance;
       bestRoute = [...fullPath];
     }

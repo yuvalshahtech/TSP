@@ -32,7 +32,7 @@ body {
 }
 
 .header h1 {
-    font-size: 2.5em;
+    font-size: clamp(1.6rem, 2.6vw, 2.5rem);
     font-weight: 700;
     margin-bottom: 5px;
     text-shadow: 0 0 20px rgba(0, 255, 204, 0.5);
@@ -50,7 +50,7 @@ body {
 }
 
 .subtitle {
-    font-size: 0.95em;
+    font-size: clamp(0.85rem, 1.2vw, 0.95rem);
     color: #00c8ff;
     font-weight: 300;
     letter-spacing: 1px;
@@ -70,9 +70,9 @@ body {
 .main-content {
     flex: 1;
     display: grid;
-    grid-template-columns: 1fr 350px;
-    gap: 20px;
-    padding: 20px;
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding: 16px;
     max-width: 1400px;
     margin: 0 auto;
     width: 100%;
@@ -86,12 +86,13 @@ body {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    align-items: center;
-    gap: 15px;
+    align-items: stretch;
+    gap: 12px;
+    width: 100%;
 }
 
 .route-label {
-    font-size: 1.1em;
+    font-size: clamp(0.9rem, 1.4vw, 1.1rem);
     color: #00ffcc;
     font-weight: 600;
     text-align: center;
@@ -111,8 +112,19 @@ canvas {
     border-radius: 12px;
     box-shadow: 0 0 40px rgba(0, 255, 204, 0.3),
                 inset 0 0 40px rgba(0, 255, 204, 0.05);
-    max-width: 100%;
+    width: 100%;
     height: auto;
+    aspect-ratio: 900 / 650;
+    display: block;
+    max-width: 100%;
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+canvas.tap-feedback {
+    box-shadow: 0 0 24px rgba(0, 255, 204, 0.4),
+                inset 0 0 40px rgba(0, 255, 204, 0.08);
 }
 
 /* ============================================================================
@@ -192,6 +204,7 @@ canvas {
     border-radius: 3px;
     outline: none;
     -webkit-appearance: none;
+    appearance: none;
 }
 
 .slider::-webkit-slider-thumb {
@@ -257,12 +270,12 @@ canvas {
 .button-group {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 10px;
+    gap: 12px;
 }
 
 .btn {
     padding: 12px 16px;
-    font-size: 0.9em;
+    font-size: clamp(0.85rem, 1.2vw, 0.95rem);
     font-weight: 600;
     border: none;
     border-radius: 8px;
@@ -275,6 +288,9 @@ canvas {
     align-items: center;
     justify-content: center;
     gap: 8px;
+    min-height: 44px;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .btn svg {
@@ -286,6 +302,20 @@ canvas {
 .btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+}
+
+.btn:active:not(:disabled) {
+    transform: translateY(1px);
+    filter: brightness(1.05);
+}
+
+.btn:focus-visible,
+.btn-step:focus-visible,
+.speed-control:focus-visible,
+.slider:focus-visible,
+canvas:focus-visible {
+    outline: 2px solid #00ffff;
+    outline-offset: 2px;
 }
 
 .btn-primary {
@@ -305,6 +335,16 @@ canvas {
 
 .btn-greedy:hover:not(:disabled) {
     box-shadow: 0 0 25px rgba(0, 200, 255, 0.6);
+    transform: translateY(-2px);
+}
+
+.btn-twoopt {
+    background: linear-gradient(135deg, #00ff88, #00c8ff);
+    color: #001b1b;
+}
+
+.btn-twoopt:hover:not(:disabled) {
+    box-shadow: 0 0 25px rgba(0, 255, 136, 0.6);
     transform: translateY(-2px);
 }
 
@@ -351,10 +391,11 @@ canvas {
     display: flex;
     gap: 8px;
     justify-content: center;
+    flex-wrap: wrap;
 }
 
 .btn-step {
-    flex: 1;
+    flex: 1 1 44px;
     padding: 10px;
     font-size: 1.1em;
     background: rgba(0, 255, 136, 0.15);
@@ -367,6 +408,7 @@ canvas {
     display: flex;
     align-items: center;
     justify-content: center;
+    min-height: 44px;
 }
 
 .btn-step svg {
@@ -416,7 +458,7 @@ canvas {
 }
 
 .step-explanation {
-    font-size: 0.85em;
+    font-size: clamp(0.8rem, 1.1vw, 0.9rem);
     color: #00c8ff;
     line-height: 1.4;
     min-height: 30px;
@@ -427,37 +469,48 @@ canvas {
     border-radius: 4px;
     max-height: 60px;
     overflow-y: auto;
+    word-break: break-word;
+    overflow-wrap: anywhere;
 }
-
 /* ============================================================================
    ANALYSIS PANEL (COMPARISON TABLE)
    ============================================================================ */
 
 .analysis-panel {
-    background: rgba(0, 20, 40, 0.6);
+    background: rgba(10, 14, 39, 0.85);
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(0, 200, 255, 0.3);
+    border: 1px solid rgba(0, 255, 255, 0.15);
     border-radius: 12px;
     padding: 20px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.08);
     transition: all 0.3s ease;
     width: 100%;
-    overflow-x: auto;
+}
+
+.analysis-panel.full-width {
+    max-width: 900px;
+    margin: 40px auto 0 auto;
+    padding: 30px;
+    background: rgba(10, 14, 39, 0.85);
+    border: 1px solid rgba(0, 255, 255, 0.15);
+    border-radius: 12px;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.08);
+    backdrop-filter: blur(10px);
 }
 
 .analysis-panel:hover {
-    border-color: rgba(0, 255, 204, 0.5);
-    box-shadow: 0 12px 40px rgba(0, 255, 204, 0.2);
+    border-color: rgba(0, 255, 255, 0.25);
+    box-shadow: 0 0 30px rgba(0, 255, 255, 0.12);
 }
 
 .analysis-panel h3 {
-    font-size: 1em;
-    color: #00c8ff;
+    font-size: clamp(0.95rem, 1.4vw, 1.1rem);
+    color: #00ffcc;
     font-weight: 700;
-    margin-bottom: 16px;
+    margin-bottom: 20px;
     text-transform: uppercase;
     letter-spacing: 1.5px;
-    text-shadow: 0 0 10px rgba(0, 200, 255, 0.5);
+    text-shadow: 0 0 10px rgba(0, 255, 204, 0.5);
     text-align: center;
     display: flex;
     align-items: center;
@@ -466,27 +519,42 @@ canvas {
 }
 
 .analysis-panel h3 svg {
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
     stroke-width: 2.5;
+}
+
+.experiment-summary {
+    margin-bottom: 20px;
+    padding: 12px 16px;
+    background: rgba(0, 255, 255, 0.05);
+    border-left: 3px solid rgba(0, 255, 255, 0.3);
+    border-radius: 6px;
+}
+
+.experiment-summary p {
+    font-size: 0.85em;
+    color: #88ccdd;
+    line-height: 1.6;
+    margin: 0;
 }
 
 .comparison-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 0.85em;
-    min-width: 500px;
+    background: transparent;
+    font-size: clamp(0.82rem, 1.1vw, 0.95rem);
 }
 
 .comparison-table thead {
-    background: rgba(0, 200, 255, 0.15);
-    border-bottom: 2px solid rgba(0, 200, 255, 0.5);
+    background: rgba(0, 255, 255, 0.08);
 }
 
 .comparison-table th {
-    padding: 12px 8px;
+    border: 1px solid rgba(0, 255, 255, 0.15);
+    padding: 14px 16px;
     text-align: center;
-    font-weight: 700;
+    font-weight: 600;
     color: #00ffcc;
     text-transform: uppercase;
     font-size: 0.75em;
@@ -494,29 +562,27 @@ canvas {
 }
 
 .comparison-table tbody tr {
-    border-bottom: 1px solid rgba(0, 255, 204, 0.1);
-    transition: all 0.3s ease;
+    transition: background 0.2s ease, box-shadow 0.2s ease;
 }
 
-.comparison-table tbody tr:hover:not([style*=\"opacity: 0.6\"]) {
-    background: rgba(0, 150, 255, 0.15) !important;
-    transform: scale(1.02);
-    box-shadow: 0 2px 8px rgba(0, 150, 255, 0.3);
+.comparison-table tbody tr:nth-child(even) {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.comparison-table tbody tr:hover:not([style*="opacity: 0.6"]) {
+    background: rgba(0, 255, 255, 0.08);
+    cursor: pointer;
 }
 
 .comparison-table tbody tr.active-row {
-    background: rgba(0, 150, 255, 0.25) !important;
-    border-left: 4px solid #00c8ff;
-    font-weight: bold;
-    box-shadow: 0 0 15px rgba(0, 200, 255, 0.5);
-}
-
-.comparison-table tbody tr:last-child {
-    border-bottom: none;
+    background: rgba(0, 255, 136, 0.12) !important;
+    box-shadow: inset 0 0 10px rgba(0, 255, 136, 0.15);
+    border: 1px solid rgba(0, 255, 136, 0.35);
 }
 
 .comparison-table td {
-    padding: 14px 8px;
+    border: 1px solid rgba(0, 255, 255, 0.15);
+    padding: 14px 16px;
     color: #ffffff;
     text-align: center;
 }
@@ -524,6 +590,7 @@ canvas {
 .comparison-table .method-name {
     font-weight: 700;
     color: #00c8ff;
+    text-align: left;
 }
 
 .comparison-table .distance-cell {
@@ -534,8 +601,8 @@ canvas {
 
 .comparison-table .distance-cell.best-distance {
     color: #00ff88;
-    text-shadow: 0 0 8px rgba(0, 255, 136, 0.6);
-    font-size: 1.1em;
+    font-weight: 600;
+    text-shadow: 0 0 8px rgba(0, 255, 136, 0.5);
 }
 
 .comparison-table .optimal-cell svg {
@@ -551,13 +618,42 @@ canvas {
 }
 
 .comparison-table .icon-no {
-    color: #ff4444;
-    stroke: #ff4444;
+    color: #ff4d4d;
+    stroke: #ff4d4d;
+}
+
+.comparison-table .match-cell {
+    text-align: center;
+    font-size: 1.1em;
+}
+
+.comparison-table .match-yes {
+    color: #00ff88;
+    font-weight: bold;
+    font-size: 1.3em;
+    text-shadow: 0 0 8px rgba(0, 255, 136, 0.6);
+}
+
+.comparison-table .match-no {
+    color: #888;
+    font-weight: normal;
+}
+
+.comparison-table .match-optimal {
+    color: #ffd700;
+    font-weight: bold;
+    text-shadow: 0 0 8px rgba(255, 215, 0, 0.5);
 }
 
 .comparison-table .time-cell {
     font-family: 'Courier New', monospace;
     color: #aaaaaa;
+    font-size: 0.9em;
+}
+
+.comparison-table .gap-cell {
+    font-family: 'Courier New', monospace;
+    color: #ffaa00;
     font-size: 0.9em;
 }
 
@@ -567,10 +663,17 @@ canvas {
     font-weight: 600;
 }
 
+.comparison-table .iterations-cell {
+    font-family: 'Courier New', monospace;
+    color: #88ddff;
+    font-size: 0.9em;
+}
+
 .comparison-table .optimal-cell {
     text-align: center;
     font-size: 1.2em;
 }
+
 
 .comparison-table #row-optimal {
     transition: all 0.3s ease;
@@ -611,7 +714,7 @@ canvas {
 
 .route-info-panel h4 {
     margin: 0 0 8px 0;
-    font-size: 0.85em;
+    font-size: clamp(0.8rem, 1.1vw, 0.9rem);
     color: #00c8ff;
     text-transform: uppercase;
     letter-spacing: 1px;
@@ -692,65 +795,72 @@ canvas {
 .educational-content strong {
     color: #ffaa00;
 }
+/* =========================================================================
+   TOUCH INTERACTIONS
+   ========================================================================= */
+
+@media (hover: none) {
+    .btn:hover:not(:disabled),
+    .btn-step:hover:not(:disabled) {
+        transform: none;
+        box-shadow: none;
+    }
+
+    .comparison-table tbody tr:hover:not([style*="opacity: 0.6"]) {
+        background: rgba(0, 255, 255, 0.06);
+    }
+}
 
 /* ============================================================================
    RESPONSIVE DESIGN
    ============================================================================ */
 
-@media (max-width: 1024px) {
+@media (min-width: 1024px) {
     .main-content {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr 350px;
+        gap: 20px;
+        padding: 20px;
+    }
+}
+
+@media (max-width: 1024px) {
+    .analysis-panel.full-width {
+        margin: 24px 16px 0 16px;
+        padding: 24px;
     }
 
     .control-section {
-        max-height: 400px;
-    }
-
-    .header h1 {
-        font-size: 2em;
+        max-height: none;
+        overflow-y: visible;
     }
 }
 
 @media (max-width: 768px) {
-    .header h1 {
-        font-size: 1.6em;
-    }
-
-    .subtitle {
-        font-size: 0.85em;
-    }
-
     .main-content {
-        padding: 15px;
-        gap: 15px;
+        padding: 14px;
+        gap: 14px;
     }
 
     .button-group {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1fr;
     }
 
-    canvas {
-        max-width: 100%;
-        height: auto;
+    .analysis-panel.full-width {
+        margin: 18px 10px 0 10px;
+        padding: 20px;
     }
 
     .comparison-table {
-        font-size: 0.75em;
+        font-size: 0.85em;
     }
 
     .comparison-table th,
     .comparison-table td {
-        padding: 10px 6px;
-    }
-
-    .analysis-panel h3 {
-        font-size: 0.9em;
-        margin-bottom: 12px;
+        padding: 12px 10px;
     }
 
     .route-label {
-        font-size: 0.9em;
-        padding: 8px 15px;
+        padding: 8px 14px;
     }
 
     .canvas-section {
@@ -768,5 +878,83 @@ canvas {
 
     #routeSequence {
         font-size: 0.8em;
+    }
+
+    .step-explanation {
+        max-height: none;
+    }
+}
+
+@media (max-width: 640px) {
+    .comparison-table thead {
+        display: none;
+    }
+
+    .comparison-table,
+    .comparison-table tbody,
+    .comparison-table tr,
+    .comparison-table td {
+        display: block;
+        width: 100%;
+    }
+
+    .comparison-table tr {
+        margin-bottom: 12px;
+        border: 1px solid rgba(0, 255, 255, 0.15);
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+    }
+
+    .comparison-table td {
+        border: none;
+        border-bottom: 1px solid rgba(0, 255, 255, 0.12);
+        text-align: right;
+        padding: 12px 14px;
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    .comparison-table td::before {
+        content: attr(data-label);
+        text-transform: uppercase;
+        font-size: 0.7em;
+        letter-spacing: 0.5px;
+        color: #00ffcc;
+        font-weight: 600;
+        text-align: left;
+    }
+
+    .comparison-table td:last-child {
+        border-bottom: none;
+    }
+
+    .comparison-table .method-name {
+        text-align: right;
+    }
+}
+
+@media (max-width: 480px) {
+    .header {
+        padding: 20px 14px;
+    }
+
+    .button-group {
+        gap: 10px;
+    }
+
+    .btn {
+        min-height: 48px;
+        width: 100%;
+    }
+
+    .analysis-panel.full-width {
+        margin: 16px 8px 0 8px;
+        padding: 16px;
+    }
+
+    .step-button-row {
+        gap: 6px;
     }
 }
