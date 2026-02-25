@@ -6,7 +6,7 @@
  * Uses modular architecture: algorithms, animations, metrics, UI, steps
  */
 
-import { greedyTSP, bruteForceTSP, calculateDistance } from './algorithms/tsp-solver.js';
+import { greedyTSP, bruteForceTSP, twoOpt, calculateDistance, calculateTotalDistance, EPSILON } from './algorithms/tsp-solver.js';
 import AnimationEngine from './modules/animation-engine.js';
 import MetricsEngine from './modules/metrics-engine.js';
 import UIManager from './modules/ui-manager.js';
@@ -14,6 +14,7 @@ import StepController from './modules/stepController.js';
 import StepRenderer from './modules/stepRenderer.js';
 import { generateGreedySteps } from './modules/greedyStepGenerator.js';
 import { generateBruteForceSteps } from './modules/bruteForceStepGenerator.js';
+import { generateTwoOptSteps } from './modules/twoOptStepGenerator.js';
 import { runBruteForceLive, createBruteForceController } from './modules/bruteForceRealtime.js';
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -40,6 +41,10 @@ document.addEventListener("DOMContentLoaded", () => {
     OPTIMAL_CITY_LIMIT: 9
   };
 
+  const CANVAS_ASPECT_RATIO = 650 / 900;
+  const RESIZE_DEBOUNCE_MS = 150;
+  const MOBILE_GUARD_CITY_LIMIT = 20;
+
   // ============================================================================
   // DOM ELEMENTS
   // ============================================================================
@@ -64,6 +69,10 @@ document.addEventListener("DOMContentLoaded", () => {
     greedyDistance: 0,
     greedyExecutionTime: 0,
     greedyAnimationState: null,
+    twoOptRoute: null,
+    twoOptDistance: 0,
+    twoOptExecutionTime: 0,
+    twoOptGap: null,
     optimalRoute: null,
     optimalDistance: 0,
     optimalExecutionTime: 0,
@@ -80,6 +89,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const routeResults = {
     user: null,
     greedy: null,
+    twoOpt: null,
     optimal: null
   };
 
@@ -91,6 +101,80 @@ document.addEventListener("DOMContentLoaded", () => {
   const uiManager = new UIManager(state, CONFIG);
   const stepController = new StepController();
   const stepRenderer = new StepRenderer(ctx, canvas, CONFIG);
+
+  let resizeTimer = null;
+  let lastTouchTime = 0;
+
+  /**
+   * Resize canvas to match container width and maintain aspect ratio
+   */
+  function resizeCanvas() {
+    const container = canvas.parentElement;
+    if (!container) return;
+
+    const maxViewportWidth = window.innerWidth ? Math.max(0, window.innerWidth - 24) : container.clientWidth;
+    const targetWidth = Math.min(container.clientWidth, maxViewportWidth);
+    if (!targetWidth || targetWidth <= 0) return;
+
+    const targetHeight = Math.round(targetWidth * CANVAS_ASPECT_RATIO);
+    const dpr = window.devicePixelRatio || 1;
+
+    canvas.style.width = `${targetWidth}px`;
+    canvas.style.height = `${targetHeight}px`;
+    canvas.width = Math.round(targetWidth * dpr);
+    canvas.height = Math.round(targetHeight * dpr);
+
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    if (state.cities.length > 0) {
+      const activeResult = state.activeView && routeResults[state.activeView];
+      if (activeResult && activeResult.path) {
+        drawSelectedRoute(state.activeView);
+      } else {
+        animationEngine.render();
+      }
+    } else {
+      ctx.clearRect(0, 0, targetWidth, targetHeight);
+      ctx.fillStyle = CONFIG.BACKGROUND_COLOR;
+      ctx.fillRect(0, 0, targetWidth, targetHeight);
+    }
+
+    updateMobileBruteForceGuard();
+  }
+
+  /**
+   * Debounced resize handler to prevent excessive redraw
+   */
+  function requestResizeCanvas(immediate = false) {
+    if (resizeTimer) {
+      clearTimeout(resizeTimer);
+      resizeTimer = null;
+    }
+
+    if (immediate) {
+      resizeCanvas();
+      return;
+    }
+
+    resizeTimer = setTimeout(() => {
+      resizeCanvas();
+      resizeTimer = null;
+    }, RESIZE_DEBOUNCE_MS);
+  }
+
+  /**
+   * Get current canvas size in CSS pixels
+   */
+  function getCanvasLayoutSize() {
+    return {
+      width: canvas.clientWidth || canvas.width,
+      height: canvas.clientHeight || canvas.height
+    };
+  }
+
+  requestResizeCanvas(true);
+  window.addEventListener("resize", () => requestResizeCanvas());
+  window.addEventListener("orientationchange", () => requestResizeCanvas());
 
   // ============================================================================
   // UTILITY FUNCTIONS
@@ -118,20 +202,26 @@ document.addEventListener("DOMContentLoaded", () => {
    * Generate random cities
    */
   function generateCities(count) {
+    requestResizeCanvas(true);
     state.cities = [];
     state.userRoute = [];
     state.userDistance = 0;
     state.greedyRoute = null;
     state.greedyDistance = 0;
+    state.twoOptRoute = null;
+    state.twoOptDistance = 0;
+    state.twoOptExecutionTime = 0;
+    state.twoOptGap = null;
     state.optimalRoute = null;
     state.optimalDistance = 0;
     state.metrics = null;
     state.cityCount = count;
 
+    const { width: canvasWidth, height: canvasHeight } = getCanvasLayoutSize();
     const minX = CONFIG.PADDING;
-    const maxX = canvas.width - CONFIG.PADDING;
+    const maxX = canvasWidth - CONFIG.PADDING;
     const minY = CONFIG.PADDING;
-    const maxY = canvas.height - CONFIG.PADDING;
+    const maxY = canvasHeight - CONFIG.PADDING;
 
     if (maxX <= minX || maxY <= minY) {
       console.error("Canvas too small");
@@ -157,10 +247,12 @@ document.addEventListener("DOMContentLoaded", () => {
     // Clear route results
     routeResults.user = null;
     routeResults.greedy = null;
+    routeResults.twoOpt = null;
     routeResults.optimal = null;
     
     uiManager.clearResults();
     uiManager.updateBruteForceAvailability(count);
+    updateMobileBruteForceGuard();
     renderComparisonTable();
     updateRouteLabel('Viewing: Algorithm Visualization');
     updateRouteSequence(null);
@@ -199,7 +291,9 @@ document.addEventListener("DOMContentLoaded", () => {
         distance: state.userDistance,
         time: null,
         complexity: '-',
-        optimal: false
+        optimal: false,
+        gap: null,
+        iterations: 'N/A'
       };
       
       // Render comparison table
@@ -210,25 +304,81 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /**
+   * Handle touch input on canvas
+   */
+  function handleCanvasTouch(event) {
+    if (!event.touches || event.touches.length === 0) return;
+    event.preventDefault();
+
+    const now = Date.now();
+    if (now - lastTouchTime < 300) return;
+    lastTouchTime = now;
+
+    const touch = event.touches[0];
+    handleCanvasClick({ clientX: touch.clientX, clientY: touch.clientY });
+
+    canvas.classList.add("tap-feedback");
+    setTimeout(() => canvas.classList.remove("tap-feedback"), 150);
+  }
+
+  /**
+   * Disable brute force on mobile for large city counts
+   */
+  function updateMobileBruteForceGuard() {
+    const bruteForceBtn = document.getElementById("runBruteForce");
+    if (!bruteForceBtn) return;
+
+    const isMobile = window.matchMedia("(max-width: 768px)").matches;
+
+    if (isMobile && state.cityCount > MOBILE_GUARD_CITY_LIMIT) {
+      bruteForceBtn.disabled = true;
+      bruteForceBtn.title = `Brute Force disabled on mobile for performance (${state.cityCount} cities > ${MOBILE_GUARD_CITY_LIMIT})`;
+      return;
+    }
+
+    if (state.cityCount <= CONFIG.OPTIMAL_CITY_LIMIT) {
+      bruteForceBtn.title = "Run Brute Force (Optimal)";
+    }
+  }
+
+  /**
    * Calculate total route distance
    */
   function calculateRouteDistance(route) {
     if (route.length < 2) return 0;
 
-    let total = 0;
-    for (let i = 0; i < route.length; i++) {
-      const from = state.cities[route[i]];
-      const to = state.cities[route[(i + 1) % route.length]];
-      if (from && to) {
-        total += calculateDistance(from, to);
-      }
-    }
-    return total;
+    // Use centralized distance calculation
+    return calculateTotalDistance(route, state.cities);
   }
 
   // ============================================================================
   // INTERACTIVE COMPARISON TABLE
   // ============================================================================
+
+  /**
+   * Check if distance matches optimal within EPSILON tolerance
+   */
+  function matchesOptimal(distance, optimalDistance) {
+    if (!optimalDistance || optimalDistance === Infinity) return false;
+    return Math.abs(distance - optimalDistance) < EPSILON;
+  }
+
+  /**
+   * Compute percentage gap vs optimal distance
+   */
+  function computeGap(distance, optimalDistance) {
+    if (
+      !distance ||
+      !optimalDistance ||
+      optimalDistance === Infinity ||
+      optimalDistance === 0
+    ) {
+      return null;
+    }
+
+    const gap = ((distance - optimalDistance) / optimalDistance) * 100;
+    return gap;
+  }
 
   /**
    * Render comparison table dynamically
@@ -242,8 +392,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const methods = [
       { key: 'user', label: 'User', complexity: '-' },
       { key: 'greedy', label: 'Greedy', complexity: 'O(n²)' },
-      { key: 'optimal', label: 'Optimal', complexity: 'O(n!)' }
+      { key: 'twoOpt', label: '2-opt (Local Search)', complexity: 'O(n²)' },
+      { key: 'optimal', label: 'Brute Force', complexity: 'O(n!)' }
     ];
+
+    // Get optimal distance for match comparison
+    const optimalResult = routeResults['optimal'];
+    const optimalDistance = optimalResult ? optimalResult.distance : null;
 
     methods.forEach(method => {
       const result = routeResults[method.key];
@@ -254,20 +409,49 @@ document.addEventListener("DOMContentLoaded", () => {
       const hasData = result !== null;
       const distance = hasData ? result.distance.toFixed(2) : '-';
       const time = hasData && result.time !== null ? `${result.time.toFixed(2)} ms` : '-';
-      let optimal = '-';
+      
+      // Compute gap dynamically based on current optimalDistance
+      let gap = '-';
+      if (method.key === 'optimal') {
+        // Brute Force always has 0% gap when it has data
+        gap = hasData ? '0.00%' : '-';
+      } else if (hasData && optimalDistance) {
+        // Compute gap dynamically for User, Greedy, 2-Opt
+        const gapValue = computeGap(result.distance, optimalDistance);
+        gap = gapValue !== null ? `${Math.max(0, gapValue).toFixed(2)}%` : '-';
+      }
+      
+      const iterations = hasData && result.iterations !== null && result.iterations !== undefined 
+        ? (typeof result.iterations === 'string' ? result.iterations : result.iterations.toLocaleString()) 
+        : '-';
+      
+      // Determine match status
+      let matchIndicator = '—';
+      let matchClass = 'match-no';
       
       if (method.key === 'optimal') {
-        optimal = hasData ? '<i data-lucide="check" class="icon-yes"></i>' : '-';
-      } else {
-        optimal = '<i data-lucide="x" class="icon-no"></i>';
+        // Brute Force always shows "✓ Optimal" badge
+        matchIndicator = '<span class="match-optimal">✓ Optimal</span>';
+        matchClass = '';
+      } else if (hasData && optimalDistance) {
+        // Check if this algorithm's result matches optimal within EPSILON
+        if (matchesOptimal(result.distance, optimalDistance)) {
+          matchIndicator = '<span class="match-yes">✓</span>';
+          matchClass = '';
+        } else {
+          matchIndicator = '—';
+          matchClass = 'match-no';
+        }
       }
 
       row.innerHTML = `
-        <td class="method-name">${method.label}</td>
-        <td class="distance-cell">${distance}</td>
-        <td class="time-cell">${time}</td>
-        <td class="complexity-cell">${method.complexity}</td>
-        <td class="optimal-cell">${optimal}</td>
+        <td class="method-name" data-label="Method">${method.label}</td>
+        <td class="distance-cell" data-label="Distance">${distance}</td>
+        <td class="time-cell" data-label="Time Taken">${time}</td>
+        <td class="gap-cell" data-label="Gap vs Optimal">${gap}</td>
+        <td class="complexity-cell" data-label="Complexity">${method.complexity}</td>
+        <td class="iterations-cell" data-label="Iterations">${iterations}</td>
+        <td class="match-cell ${matchClass}" data-label="Match">${matchIndicator}</td>
       `;
 
       // Add click handler only if route exists
@@ -335,15 +519,17 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!result || !result.path) return;
 
     state.activeView = key;
-    updateRouteLabel(`Viewing: ${key.toUpperCase()} Route - Distance: ${result.distance.toFixed(2)}`);
+    updateRouteLabel(`Viewing: ${getRouteLabel(key)} Route - Distance: ${result.distance.toFixed(2)}`);
     updateRouteSequence(result.path);
 
+    const { width: canvasWidth, height: canvasHeight } = getCanvasLayoutSize();
+
     // Clear and redraw
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
+    ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+
     // Draw background
     ctx.fillStyle = CONFIG.BACKGROUND_COLOR;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
 
     // Draw the selected route
     drawRouteOnCanvas(result.path, getRouteColor(key), 3);
@@ -413,11 +599,25 @@ document.addEventListener("DOMContentLoaded", () => {
    */
   function getRouteColor(key) {
     const colors = {
-      user: '#00ff88',    // Green
-      greedy: '#00c8ff',  // Cyan
-      optimal: '#ffd700'  // Gold
+      user: '#00ff88',    // Green - human input
+      greedy: '#00c8ff',  // Cyan - fast heuristic
+      twoOpt: '#a855f7',  // Purple - improved heuristic
+      optimal: '#ffd700'  // Gold - ground truth
     };
     return colors[key] || '#ffffff';
+  }
+
+  /**
+   * Get display label for route type
+   */
+  function getRouteLabel(key) {
+    const labels = {
+      user: 'User',
+      greedy: 'Greedy',
+      twoOpt: '2-opt (Local Search)',
+      optimal: 'Optimal'
+    };
+    return labels[key] || key;
   }
 
   /**
@@ -552,6 +752,9 @@ document.addEventListener("DOMContentLoaded", () => {
       // Generate steps
       const steps = generateGreedySteps(state.cities);
       
+      // Count iterations (number of edge_added steps = city selections)
+      const greedyIterations = steps.filter(step => step.type === 'edge_added').length;
+      
       // Setup step controller
       stepController.initialize("Greedy", state.cities.length, state.userRoute);
       stepController.addSteps(steps);
@@ -576,7 +779,9 @@ document.addEventListener("DOMContentLoaded", () => {
         distance: state.greedyDistance,
         time: state.greedyExecutionTime,
         complexity: 'O(n²)',
-        optimal: false
+        optimal: false,
+        gap: null,
+        iterations: greedyIterations
       };
       
       // Render comparison table
@@ -584,6 +789,69 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch (err) {
       console.error("Greedy algorithm error:", err);
       alert("Error running Greedy algorithm");
+    }
+
+    state.isAnimating = false;
+    uiManager.disableButtons(false);
+  }
+
+  /**
+   * Run 2-opt algorithm with Step Control
+   */
+  async function runTwoOptAlgorithm() {
+    if (state.cities.length < 2) {
+      alert("Generate at least 2 cities");
+      return;
+    }
+
+    if (state.isAnimating) return;
+    state.isAnimating = true;
+    uiManager.disableButtons(true);
+
+    const startTime = performance.now();
+
+    try {
+      const greedyResult = greedyTSP(state.cities);
+      const initialRoute = greedyResult.path;
+
+      const steps = generateTwoOptSteps(state.cities, initialRoute);
+      
+      // Count iterations (number of successful swaps)
+      const twoOptIterations = steps.filter(step => step.type === 'swap').length;
+      
+      stepController.initialize("2-opt", state.cities.length, state.userRoute);
+      stepController.addSteps(steps);
+      setupStepControllerCallbacks();
+
+      const result = twoOpt(state.cities, initialRoute);
+      state.twoOptRoute = result.route;
+      state.twoOptDistance = result.distance;
+
+      const endTime = performance.now();
+      state.twoOptExecutionTime = endTime - startTime;
+
+      state.twoOptGap = state.optimalDistance > 0
+        ? ((state.twoOptDistance - state.optimalDistance) / state.optimalDistance) * 100
+        : null;
+
+      uiManager.updateEducationalPanel("twoOpt", state.cities.length);
+      showStepControl();
+      updateStepControlUI();
+
+      routeResults.twoOpt = {
+        path: [...state.twoOptRoute],
+        distance: state.twoOptDistance,
+        time: state.twoOptExecutionTime,
+        complexity: 'O(n²)',
+        optimal: false,
+        gap: state.twoOptGap,
+        iterations: twoOptIterations
+      };
+
+      renderComparisonTable();
+    } catch (err) {
+      console.error("2-opt algorithm error:", err);
+      alert("Error running 2-opt algorithm");
     }
 
     state.isAnimating = false;
@@ -689,8 +957,36 @@ document.addEventListener("DOMContentLoaded", () => {
         distance: state.optimalDistance,
         time: state.optimalExecutionTime,
         complexity: 'O(n!)',
-        optimal: true
+        optimal: true,
+        gap: 0,
+        iterations: result.permutationsChecked
       };
+
+      if (routeResults.twoOpt && state.twoOptDistance > 0) {
+        state.twoOptGap = ((state.twoOptDistance - state.optimalDistance) / state.optimalDistance) * 100;
+        routeResults.twoOpt.gap = state.twoOptGap;
+
+        // CRITICAL VALIDATION: Heuristic should NEVER beat optimal
+        if (state.twoOptDistance < state.optimalDistance - EPSILON) {
+          console.error('==========================================');
+          console.error('VALIDATION ERROR: 2-opt better than brute force!');
+          console.error('2-opt distance:', state.twoOptDistance);
+          console.error('Optimal distance:', state.optimalDistance);
+          console.error('Difference:', state.optimalDistance - state.twoOptDistance);
+          console.error('==========================================');
+        }
+      }
+      
+      if (routeResults.greedy && state.greedyDistance > 0) {
+        const greedyGap = ((state.greedyDistance - state.optimalDistance) / state.optimalDistance) * 100;
+        routeResults.greedy.gap = greedyGap;
+        
+        // Phase 4: Defensive guard - check invariant for greedy
+        if (state.greedyDistance < state.optimalDistance - EPSILON) {
+          console.warn("⚠ Invariant violation: Greedy distance is less than optimal distance");
+          console.warn(`  Greedy: ${state.greedyDistance.toFixed(6)}, Optimal: ${state.optimalDistance.toFixed(6)}`);
+        }
+      }
       
       // Render comparison table
       renderComparisonTable();
@@ -722,6 +1018,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Run Greedy first
     await runGreedyAlgorithm();
+
+    // Wait a bit
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    // Run 2-opt local search
+    await runTwoOptAlgorithm();
 
     // Wait a bit
     await new Promise(resolve => setTimeout(resolve, 1000));
@@ -772,6 +1074,11 @@ document.addEventListener("DOMContentLoaded", () => {
       greedyBtn.addEventListener("click", runGreedyAlgorithm);
     }
 
+    const twoOptBtn = document.getElementById("runTwoOpt");
+    if (twoOptBtn) {
+      twoOptBtn.addEventListener("click", runTwoOptAlgorithm);
+    }
+
     const bruteForceBtn = document.getElementById("runBruteForce");
     if (bruteForceBtn) {
       bruteForceBtn.addEventListener("click", runBruteForceAlgorithm);
@@ -784,6 +1091,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Canvas click for user route
     canvas.addEventListener("click", handleCanvasClick);
+    canvas.addEventListener("touchstart", handleCanvasTouch, { passive: false });
 
     // Step control buttons
     const stepPlayBtn = document.getElementById("stepPlay");
@@ -845,6 +1153,7 @@ document.addEventListener("DOMContentLoaded", () => {
     generateCities(state.cityCount);
     uiManager.updateCityCountDisplay(state.cityCount);
     uiManager.updateBruteForceAvailability(state.cityCount);
+    updateMobileBruteForceGuard();
     initEventListeners();
     
     // Initialize comparison table

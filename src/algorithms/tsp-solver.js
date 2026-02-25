@@ -7,15 +7,102 @@ function calculateDistance(cityA, cityB) {
     return Math.sqrt(dx * dx + dy * dy);
 }
 
+// Float comparison epsilon for robustness
+const EPSILON = 1e-9;
+
 /**
- * Calculate total distance of a path
+ * Calculate total distance of a route (treats route as cyclic)
  */
-function calculateTotalDistance(path, cities) {
+function calculateTotalDistance(route, cities) {
+    if (!route || route.length < 2) return 0;
+
     let totalDistance = 0;
-    for (let i = 0; i < path.length - 1; i++) {
-        totalDistance += calculateDistance(cities[path[i]], cities[path[i + 1]]);
+    const isClosed = route[0] === route[route.length - 1];
+
+    for (let i = 0; i < route.length - 1; i++) {
+        totalDistance += calculateDistance(cities[route[i]], cities[route[i + 1]]);
     }
+
+    if (!isClosed) {
+        totalDistance += calculateDistance(cities[route[route.length - 1]], cities[route[0]]);
+    }
+
     return totalDistance;
+}
+
+/**
+ * Perform a 2-opt swap between indices i and k (inclusive)
+ */
+function perform2OptSwap(route, i, k) {
+    const start = route.slice(0, i);
+    const middle = route.slice(i, k + 1).reverse();
+    const end = route.slice(k + 1);
+    return start.concat(middle, end);
+}
+
+/**
+ * 2-opt Local Search TSP Algorithm
+ * Improves an initial route by reversing segments
+ * @param {Array<Object>} cities - Array of city objects [{id, x, y}, ...]
+ * @param {Array<number>} initialRoute - Initial route (may be closed or open)
+ * @returns {Object} {route: [city indices], distance: total distance, iterations: successful swaps}
+ */
+function twoOpt(cities, initialRoute) {
+    if (!cities || cities.length < 2) {
+        return { route: [], distance: 0, iterations: 0 };
+    }
+
+    if (!initialRoute || initialRoute.length < 2) {
+        return { route: [], distance: 0, iterations: 0 };
+    }
+
+    const baseRoute = [...initialRoute];
+    if (baseRoute.length > 1 && baseRoute[0] === baseRoute[baseRoute.length - 1]) {
+        baseRoute.pop();
+    }
+
+    const n = baseRoute.length;
+    if (n < 3) {
+        const closedRoute = [...baseRoute, baseRoute[0]];
+        return {
+            route: closedRoute,
+            distance: calculateTotalDistance(closedRoute, cities),
+            iterations: 0
+        };
+    }
+
+    let route = [...baseRoute];
+    let bestDistance = calculateTotalDistance(route, cities);
+    let improved = true;
+    let iterations = 0;
+
+    while (improved) {
+        improved = false;
+
+        for (let i = 1; i < n - 1; i++) {
+            for (let k = i + 1; k < n; k++) {
+                const newRoute = perform2OptSwap(route, i, k);
+                const newDistance = calculateTotalDistance(newRoute, cities);
+
+                if (newDistance < bestDistance - EPSILON) {
+                    route = newRoute;
+                    bestDistance = newDistance;
+                    iterations += 1;
+                    improved = true;
+                    break;
+                }
+            }
+            if (improved) break;
+        }
+    }
+
+    const closedRoute = [...route, route[0]];
+
+    return {
+        route: closedRoute,
+        distance: bestDistance,
+        iterations
+    };
 }
 
 /**
@@ -110,7 +197,7 @@ function bruteForceTSP(cities) {
         const path = [...perm, perm[0]];
         const distance = calculateTotalDistance(path, cities);
         
-        if (distance < minDistance) {
+        if (distance < minDistance - EPSILON) {
             minDistance = distance;
             optimalPath = path;
         }
@@ -119,4 +206,39 @@ function bruteForceTSP(cities) {
     return { path: optimalPath, distance: minDistance };
 }
 
-export { greedyTSP, bruteForceTSP, calculateDistance, calculateTotalDistance };
+/**
+ * Internal consistency test (development only)
+ * Tests with a perfect square - expected distance = 40
+ */
+function _runConsistencyTest() {
+    const testCities = [
+        { id: 0, x: 0, y: 0 },
+        { id: 1, x: 0, y: 10 },
+        { id: 2, x: 10, y: 10 },
+        { id: 3, x: 10, y: 0 }
+    ];
+
+    const optimalRoute = [0, 1, 2, 3, 0];
+    const expectedDistance = 40;
+
+    const computedDistance = calculateTotalDistance(optimalRoute, testCities);
+    const diff = Math.abs(computedDistance - expectedDistance);
+
+    if (diff > EPSILON) {
+        console.error('==========================================');
+        console.error('CONSISTENCY TEST FAILED!');
+        console.error('Expected distance:', expectedDistance);
+        console.error('Computed distance:', computedDistance);
+        console.error('Difference:', diff);
+        console.error('==========================================');
+        return false;
+    } else {
+        console.log('✓ Consistency test passed: Square route = 40.00');
+        return true;
+    }
+}
+
+// Run consistency test on module load (development validation)
+_runConsistencyTest();
+
+export { greedyTSP, bruteForceTSP, twoOpt, calculateDistance, calculateTotalDistance, perform2OptSwap, EPSILON };

@@ -17,6 +17,7 @@ class UIManager {
     return {
       generateBtn: document.getElementById("generateCities"),
       greedyBtn: document.getElementById("runGreedy"),
+      twoOptBtn: document.getElementById("runTwoOpt"),
       bruteForceBtn: document.getElementById("runBruteForce"),
       runAllBtn: document.getElementById("runAllAlgorithms"),
       cityCountSlider: document.getElementById("cityCount"),
@@ -37,12 +38,15 @@ class UIManager {
       userDistance = null,
       greedyDistance = null,
       greedyTime = null,
+      twoOptDistance = null,
+      twoOptTime = null,
+      twoOptGap = null,
       optimalDistance = null,
       optimalTime = null
     } = data;
 
     // Determine best distance for highlighting
-    const distances = [userDistance, greedyDistance, optimalDistance].filter(d => d !== null);
+    const distances = [userDistance, greedyDistance, twoOptDistance, optimalDistance].filter(d => d !== null);
     const bestDistance = distances.length > 0 ? Math.min(...distances) : null;
 
     // Update User row
@@ -50,6 +54,7 @@ class UIManager {
     if (rowUser) {
       const distanceCell = rowUser.querySelector('.distance-cell');
       const timeCell = rowUser.querySelector('.time-cell');
+      const gapCell = rowUser.querySelector('.gap-cell');
       const optimalCell = rowUser.querySelector('.optimal-cell');
       
       if (distanceCell) {
@@ -57,6 +62,7 @@ class UIManager {
         distanceCell.classList.toggle('best-distance', userDistance === bestDistance && bestDistance !== null);
       }
       if (timeCell) timeCell.textContent = '-';
+      if (gapCell) gapCell.textContent = '-';
       if (optimalCell) {
         optimalCell.innerHTML = (userDistance === bestDistance && bestDistance !== null && optimalDistance !== null) 
           ? '<i data-lucide="check" class="icon-yes"></i>' 
@@ -70,6 +76,7 @@ class UIManager {
     if (rowGreedy) {
       const distanceCell = rowGreedy.querySelector('.distance-cell');
       const timeCell = rowGreedy.querySelector('.time-cell');
+      const gapCell = rowGreedy.querySelector('.gap-cell');
       const optimalCell = rowGreedy.querySelector('.optimal-cell');
       
       if (distanceCell) {
@@ -77,10 +84,31 @@ class UIManager {
         distanceCell.classList.toggle('best-distance', greedyDistance === bestDistance && bestDistance !== null);
       }
       if (timeCell) timeCell.textContent = greedyTime !== null ? `${greedyTime.toFixed(2)} ms` : '-';
+      if (gapCell) gapCell.textContent = '-';
       if (optimalCell) {
         optimalCell.innerHTML = (greedyDistance === bestDistance && bestDistance !== null && optimalDistance !== null) 
           ? '<i data-lucide="check" class="icon-yes"></i>' 
           : '<i data-lucide="x" class="icon-no"></i>';
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+      }
+    }
+
+    // Update 2-opt row
+    const rowTwoOpt = document.getElementById('row-twoOpt');
+    if (rowTwoOpt) {
+      const distanceCell = rowTwoOpt.querySelector('.distance-cell');
+      const timeCell = rowTwoOpt.querySelector('.time-cell');
+      const gapCell = rowTwoOpt.querySelector('.gap-cell');
+      const optimalCell = rowTwoOpt.querySelector('.optimal-cell');
+
+      if (distanceCell) {
+        distanceCell.textContent = twoOptDistance !== null ? twoOptDistance.toFixed(2) : '-';
+        distanceCell.classList.toggle('best-distance', twoOptDistance === bestDistance && bestDistance !== null);
+      }
+      if (timeCell) timeCell.textContent = twoOptTime !== null ? `${twoOptTime.toFixed(2)} ms` : '-';
+      if (gapCell) gapCell.textContent = twoOptGap !== null ? `${twoOptGap.toFixed(2)}%` : '-';
+      if (optimalCell) {
+        optimalCell.innerHTML = '<i data-lucide="x" class="icon-no"></i>';
         if (typeof lucide !== 'undefined') lucide.createIcons();
       }
     }
@@ -90,6 +118,7 @@ class UIManager {
     if (rowOptimal) {
       const distanceCell = rowOptimal.querySelector('.distance-cell');
       const timeCell = rowOptimal.querySelector('.time-cell');
+      const gapCell = rowOptimal.querySelector('.gap-cell');
       const optimalCell = rowOptimal.querySelector('.optimal-cell');
       
       if (distanceCell) {
@@ -97,6 +126,7 @@ class UIManager {
         distanceCell.classList.toggle('best-distance', optimalDistance === bestDistance && bestDistance !== null);
       }
       if (timeCell) timeCell.textContent = optimalTime !== null ? `${optimalTime.toFixed(2)} ms` : '-';
+      if (gapCell) gapCell.textContent = optimalDistance !== null ? '0.00%' : '-';
       if (optimalCell) {
         optimalCell.innerHTML = optimalDistance !== null ? '<i data-lucide="check" class="icon-yes"></i>' : '-';
         if (typeof lucide !== 'undefined') lucide.createIcons();
@@ -129,6 +159,14 @@ class UIManager {
         <p><strong>Pros:</strong> Guaranteed optimal solution.</p>
         <p><strong>Cons:</strong> Extremely slow for large n (${cityCount} cities = ${this.factorial(cityCount)} permutations!).</p>
         <p><strong>Use Case:</strong> Only practical for very small (n ≤ 10) instances.</p>
+      `,
+      twoOpt: `
+        <h3>2-opt (Local Search)</h3>
+        <p><strong>Strategy:</strong> Repeatedly reverse a segment if it shortens the tour.</p>
+        <p><strong>Time Complexity:</strong> O(n²) per pass</p>
+        <p><strong>Pros:</strong> Improves a good initial route quickly.</p>
+        <p><strong>Cons:</strong> Can get stuck in local minima.</p>
+        <p><strong>Use Case:</strong> Fast refinement of heuristic routes.</p>
       `
     };
 
@@ -166,6 +204,7 @@ class UIManager {
   disableButtons(disable = true) {
     if (this.elements.generateBtn) this.elements.generateBtn.disabled = disable;
     if (this.elements.greedyBtn) this.elements.greedyBtn.disabled = disable;
+    if (this.elements.twoOptBtn) this.elements.twoOptBtn.disabled = disable;
     if (this.elements.bruteForceBtn) this.elements.bruteForceBtn.disabled = disable;
     if (this.elements.runAllBtn) this.elements.runAllBtn.disabled = disable;
   }
@@ -194,6 +233,9 @@ class UIManager {
       userDistance: null,
       greedyDistance: null,
       greedyTime: null,
+      twoOptDistance: null,
+      twoOptTime: null,
+      twoOptGap: null,
       optimalDistance: null,
       optimalTime: null
     });

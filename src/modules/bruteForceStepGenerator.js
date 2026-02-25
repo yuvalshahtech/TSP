@@ -5,6 +5,8 @@
  * Each permutation evaluation = one "frame" in the visualization
  */
 
+import { calculateTotalDistance, EPSILON } from '../algorithms/tsp-solver.js';
+
 /**
  * Generator function for permutations (all n! permutations)
  */
@@ -20,21 +22,6 @@ function* generatePermutations(array) {
       }
     }
   }
-}
-
-/**
- * Calculate total distance for a path (including closing the loop)
- */
-function calculateDistance(path, cities) {
-  let distance = 0;
-  for (let i = 0; i < path.length - 1; i++) {
-    const from = cities[path[i]];
-    const to = cities[path[i + 1]];
-    const dx = to.x - from.x;
-    const dy = to.y - from.y;
-    distance += Math.sqrt(dx * dx + dy * dy);
-  }
-  return distance;
 }
 
 /**
@@ -84,16 +71,15 @@ function generateBruteForceSteps(cities, samplingRate = 1) {
 
     // Only show every Nth permutation to avoid too many steps
     if (permutationCount % samplingRate === 0) {
-      // Close the loop
-      const fullPath = [...perm, perm[0]];
-      const distance = calculateDistance(fullPath, cities);
+      // Use open route - calculateTotalDistance will handle closing
+      const distance = calculateTotalDistance(perm, cities);
 
       sampledCount++;
 
-      // Check if this is a new best
-      if (distance < bestDistance) {
+      // Check if this is a new best (with epsilon tolerance)
+      if (distance < bestDistance - EPSILON) {
         bestDistance = distance;
-        bestPath = fullPath;
+        bestPath = [...perm, perm[0]];
 
         steps.push({
           type: "best_found",
@@ -115,7 +101,7 @@ function generateBruteForceSteps(cities, samplingRate = 1) {
           distance: distance.toFixed(2),
           current: permutationCount,
           total: totalPermutations,
-          isBest: distance === bestDistance
+          isBest: Math.abs(distance - bestDistance) < 1e-9
         },
         explanation: `Checked permutation ${permutationCount}/${totalPermutations}: distance ${distance.toFixed(2)}`
       });
@@ -153,4 +139,4 @@ function generateBruteForceSteps(cities, samplingRate = 1) {
   return steps;
 }
 
-export { generateBruteForceSteps, generatePermutations, calculateDistance, factorial };
+export { generateBruteForceSteps, generatePermutations, factorial };

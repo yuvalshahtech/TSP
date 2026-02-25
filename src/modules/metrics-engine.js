@@ -3,6 +3,8 @@
  * Calculates statistics, time complexity, and performance metrics
  */
 
+import { twoOpt, EPSILON } from '../algorithms/tsp-solver.js';
+
 class MetricsEngine {
   /**
    * Calculate performance metrics
@@ -12,9 +14,11 @@ class MetricsEngine {
       userDistance: parseFloat(userDistance.toFixed(2)),
       greedyDistance: parseFloat(greedyDistance.toFixed(2)),
       optimalDistance: optimalDistance ? parseFloat(optimalDistance.toFixed(2)) : null,
+      twoOptDistance: null,
       userVsGreedy: null,
       userVsOptimal: null,
-      greedyVsOptimal: null
+      greedyVsOptimal: null,
+      twoOptVsOptimal: null
     };
 
     if (greedyDistance > 0) {
@@ -27,6 +31,38 @@ class MetricsEngine {
     }
 
     return metrics;
+  }
+
+  /**
+   * Evaluate 2-opt performance and optimality gap
+   */
+  static evaluateTwoOpt(cities, initialRoute, optimalDistance = null) {
+    const startTime = performance.now();
+    const result = twoOpt(cities, initialRoute);
+    const endTime = performance.now();
+
+    const gap = optimalDistance && optimalDistance > 0
+      ? ((result.distance - optimalDistance) / optimalDistance) * 100
+      : null;
+
+    // CRITICAL VALIDATION: Heuristic should NEVER beat optimal
+    if (optimalDistance !== null && result.distance < optimalDistance - EPSILON) {
+      console.error('==========================================');
+      console.error('CRITICAL ERROR: Heuristic better than optimal!');
+      console.error('2-opt distance:', result.distance);
+      console.error('Optimal distance:', optimalDistance);
+      console.error('Difference:', optimalDistance - result.distance);
+      console.error('==========================================');
+    }
+
+    return {
+      path: result.route,
+      distance: parseFloat(result.distance.toFixed(2)),
+      time: parseFloat((endTime - startTime).toFixed(2)),
+      gap: gap !== null ? parseFloat(gap.toFixed(2)) : null,
+      complexity: 'O(n²)',
+      optimal: false
+    };
   }
 
   /**

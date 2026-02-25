@@ -27,6 +27,11 @@ class StepRenderer {
     const currentStep = steps[currentStepIndex];
     const isFinalResult = currentStep && currentStep.type === "final_result";
 
+    if (currentStep && ["compare", "swap", "final"].includes(currentStep.type)) {
+      this._renderTwoOptStep(cities, currentStep, userRoute);
+      return;
+    }
+
     if (isFinalResult) {
       // Special rendering for final result step
       this._renderFinalResult(cities, currentStep, userRoute);
@@ -79,6 +84,45 @@ class StepRenderer {
     if (state.metadata) {
       this._drawMetadata(state.metadata);
     }
+  }
+
+  /**
+   * Render 2-opt step visualization
+   */
+  _renderTwoOptStep(cities, step, userRoute) {
+    if (!step.currentRoute || step.currentRoute.length < 2) return;
+
+    // Draw user route first (baseline)
+    if (userRoute.length > 0) {
+      this._drawRoute(userRoute, this.config.USER_ROUTE_COLOR, 2.5, cities);
+    }
+
+    const routeColor = step.type === "swap" ? "#00ff88" : (step.type === "final" ? "#ffd700" : "#00c8ff");
+    this._drawRoute(step.currentRoute, routeColor, 3, cities);
+
+    if (step.swapIndices && step.swapIndices.length === 2) {
+      const [i, k] = step.swapIndices;
+      const route = step.currentRoute;
+      const fromA = route[i];
+      const toA = route[i + 1];
+      const fromB = route[k];
+      const toB = route[(k + 1) % route.length];
+
+      if (fromA !== undefined && toA !== undefined) {
+        this._drawEdge(fromA, toA, "rgba(255, 255, 0, 0.8)", 3, cities);
+      }
+      if (fromB !== undefined && toB !== undefined) {
+        this._drawEdge(fromB, toB, "rgba(255, 255, 0, 0.8)", 3, cities);
+      }
+    }
+
+    const allVisited = new Set(step.currentRoute);
+    this._drawCities(cities, allVisited, -1);
+
+    this._drawMetadata({
+      decision: step.type === "final" ? "2-opt complete" : "2-opt comparing",
+      lastEdge: `Distance: ${step.distance.toFixed(2)}`
+    });
   }
 
   /**

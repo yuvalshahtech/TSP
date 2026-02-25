@@ -3,20 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TSP Arena – You vs Algorithm</title>
+    <title>TSP Optimization Lab</title>
     <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
     <div class="container">
         <header class="header">
-            <h1><i data-lucide="network"></i> TSP Arena</h1>
-            <p class="subtitle">Interactive Algorithm Visualization Lab</p>
+            <h1><i data-lucide="network"></i> TSP Optimization Lab</h1>
+            <p class="subtitle">Interactive Optimization & Heuristic Benchmarking Lab</p>
         </header>
 
         <div class="main-content">
             <div class="canvas-section">
                 <h3 id="routeLabel" class="route-label">Viewing: Algorithm Visualization</h3>
-                <canvas id="tspCanvas" width="900" height="650"></canvas>
+                <canvas id="tspCanvas"></canvas>
             </div>
 
             <div class="control-section">
@@ -44,9 +44,13 @@
                             <i data-lucide="trending-up"></i>
                             <span>Run Greedy</span>
                         </button>
+                        <button id="runTwoOpt" class="btn btn-twoopt">
+                            <i data-lucide="shuffle"></i>
+                            <span>Run 2-opt</span>
+                        </button>
                         <button id="runBruteForce" class="btn btn-optimal">
                             <i data-lucide="zap"></i>
-                            <span>Find Optimal</span>
+                            <span>Compute Optimal (Exact)</span>
                         </button>
                         <button id="runAllAlgorithms" class="btn btn-all">
                             <i data-lucide="play"></i>
@@ -86,44 +90,6 @@
 
                 <div id="userDistanceDisplay" class="user-distance" style="display: none;"></div>
 
-                <div class="analysis-panel">
-                    <h3><i data-lucide="bar-chart-3"></i> Algorithm Comparison</h3>
-                    <table id="comparisonTable" class="comparison-table">
-                        <thead>
-                            <tr>
-                                <th>Method</th>
-                                <th>Distance</th>
-                                <th>Time Taken</th>
-                                <th>Complexity</th>
-                                <th>Optimal?</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr id="row-user">
-                                <td class="method-name">User</td>
-                                <td class="distance-cell">-</td>
-                                <td class="time-cell">-</td>
-                                <td class="complexity-cell">-</td>
-                                <td class="optimal-cell"><i data-lucide="x" class="icon-no"></i></td>
-                            </tr>
-                            <tr id="row-greedy">
-                                <td class="method-name">Greedy</td>
-                                <td class="distance-cell">-</td>
-                                <td class="time-cell">-</td>
-                                <td class="complexity-cell">O(n²)</td>
-                                <td class="optimal-cell"><i data-lucide="x" class="icon-no"></i></td>
-                            </tr>
-                            <tr id="row-optimal">
-                                <td class="method-name">Optimal</td>
-                                <td class="distance-cell">-</td>
-                                <td class="time-cell">-</td>
-                                <td class="complexity-cell">O(n!)</td>
-                                <td class="optimal-cell"><i data-lucide="check" class="icon-yes"></i></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-
                 <div class="route-info-panel">
                     <h4><i data-lucide="list-ordered"></i> Route Order</h4>
                     <p id="routeSequence">None</p>
@@ -136,13 +102,76 @@
         </div>
     </div>
 
+    <div class="analysis-panel full-width">
+        <h3><i data-lucide="bar-chart-3"></i> Algorithm Comparison</h3>
+        <div class="experiment-summary">
+            <p>
+                Distances are computed using cyclic Euclidean metric.
+                Brute force enumerates n! permutations (n ≤ 10).
+                2-opt applies first-improvement local search.
+            </p>
+        </div>
+        <table id="comparisonTable" class="comparison-table">
+            <thead>
+                <tr>
+                    <th>Method</th>
+                    <th>Distance</th>
+                    <th>Time Taken</th>
+                    <th>Gap vs Optimal</th>
+                    <th>Complexity</th>
+                    <th>Iterations</th>
+                    <th>Match</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr id="row-user">
+                    <td class="method-name" data-label="Method">User</td>
+                    <td class="distance-cell" data-label="Distance">-</td>
+                    <td class="time-cell" data-label="Time Taken">-</td>
+                    <td class="gap-cell" data-label="Gap vs Optimal">-</td>
+                    <td class="complexity-cell" data-label="Complexity">-</td>
+                    <td class="iterations-cell" data-label="Iterations">-</td>
+                    <td class="match-cell" data-label="Match">—</td>
+                </tr>
+                <tr id="row-greedy">
+                    <td class="method-name" data-label="Method">Greedy</td>
+                    <td class="distance-cell" data-label="Distance">-</td>
+                    <td class="time-cell" data-label="Time Taken">-</td>
+                    <td class="gap-cell" data-label="Gap vs Optimal">-</td>
+                    <td class="complexity-cell" data-label="Complexity">O(n²)</td>
+                    <td class="iterations-cell" data-label="Iterations">-</td>
+                    <td class="match-cell" data-label="Match">—</td>
+                </tr>
+                <tr id="row-twoOpt">
+                    <td class="method-name" data-label="Method">2-opt (Local Search)</td>
+                    <td class="distance-cell" data-label="Distance">-</td>
+                    <td class="time-cell" data-label="Time Taken">-</td>
+                    <td class="gap-cell" data-label="Gap vs Optimal">-</td>
+                    <td class="complexity-cell" data-label="Complexity">O(n²)</td>
+                    <td class="iterations-cell" data-label="Iterations">-</td>
+                    <td class="match-cell" data-label="Match">—</td>
+                </tr>
+                <tr id="row-optimal">
+                    <td class="method-name" data-label="Method">Brute Force</td>
+                    <td class="distance-cell" data-label="Distance">-</td>
+                    <td class="time-cell" data-label="Time Taken">-</td>
+                    <td class="gap-cell" data-label="Gap vs Optimal">-</td>
+                    <td class="complexity-cell" data-label="Complexity">O(n!)</td>
+                    <td class="iterations-cell" data-label="Iterations">-</td>
+                    <td class="match-cell" data-label="Match"><span class="match-optimal">✓ Optimal</span></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
     <script type="module" src="./script.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script>
-        // Initialize Lucide icons after DOM loads
-        if (typeof lucide !== 'undefined') {
-            lucide.createIcons();
-        }
+           window.addEventListener("DOMContentLoaded", () => {
+               if (window.lucide) {
+                   lucide.createIcons();
+               }
+           });
     </script>
 </body>
 </html>
